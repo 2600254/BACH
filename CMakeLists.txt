@@ -15,6 +15,9 @@ include_directories(${PROJECT_SOURCE_DIR})
 
 file(GLOB_RECURSE srcs CONFIGURE_DEPENDS src/*.cpp)
 
+# Exclude Cypher module from basic build (requires additional dependencies)
+list(FILTER srcs EXCLUDE REGEX ".*cypher/.*")
+
 add_library(bach SHARED bind/BACH.cpp ${srcs})
 target_include_directories(bach PUBLIC include)
 target_compile_features(bach PUBLIC cxx_std_20)
@@ -33,3 +36,86 @@ if(DEBUG)
 	target_link_options(bach PRIVATE -lprofiler -ltcmalloc)
 endif()
 
+# ============================================================================
+# Cypher Query Language Module (with ANTLR4) - Optional
+# ============================================================================
+option(BUILD_CYPHER "Build Cypher query language module" OFF)
+
+if(BUILD_CYPHER)
+    message(STATUS "Cypher module enabled - checking for ANTLR4...")
+
+    # Find ANTLR4 runtime manually
+    find_path(ANTLR4_INCLUDE_DIR antlr4-runtime.h
+        PATHS /usr/include/antlr4-runtime
+        NO_DEFAULT_PATH
+    )
+    find_library(ANTLR4_LIBRARY
+        NAMES antlr4-runtime libantlr4-runtime
+        PATHS /usr/lib/x86_64-linux-gnu
+        NO_DEFAULT_PATH
+    )
+
+    if(ANTLR4_INCLUDE_DIR AND ANTLR4_LIBRARY)
+        message(STATUS "ANTLR4 runtime found")
+        message(STATUS "  Include: ${ANTLR4_INCLUDE_DIR}")
+        message(STATUS "  Library: ${ANTLR4_LIBRARY}")
+
+        # Add generated source files (if they exist)
+        set(PARSER_GENERATED_DIR ${CMAKE_CURRENT_SOURCE_DIR}/parser/generated)
+
+        # Check if parser files have been generated
+        if(EXISTS ${PARSER_GENERATED_DIR}/CypherParser.h)
+            message(STATUS "Using pre-generated ANTLR4 parser files")
+
+            # Add generated source files
+            file(GLOB PARSER_SOURCES
+                ${PARSER_GENERATED_DIR}/*.cpp
+            )
+
+            # Add Cypher source files
+            file(GLOB_RECURSE CYPER_SOURCES CONFIGURE_DEPENDS src/cypher/*.cpp)
+
+            # Add parser and Cypher sources to the library
+            target_sources(bach PRIVATE ${PARSER_SOURCES} ${CYPER_SOURCES})
+            target_include_directories(bach PRIVATE ${PARSER_GENERATED_DIR} ${ANTLR4_INCLUDE_DIR})
+
+            # Link ANTLR4 runtime
+            target_link_libraries(bach PRIVATE ${ANTLR4_LIBRARY})
+
+            # Define that Cypher module is enabled
+            target_compile_definitions(bach PRIVATE BACH_ENABLE_CYPHER)
+
+            # Cypher test executable
+            add_executable(cypher_test src/cypher/tests/cypher_test.cpp)
+            target_include_directories(cypher_test PRIVATE include ${ANTLR4_INCLUDE_DIR})
+            target_link_libraries(cypher_test PRIVATE bach ${ANTLR4_LIBRARY})
+            message(STATUS "Cypher test executable will be built")
+        else()
+            message(WARNING "ANTLR4 parser files not found in ${PARSER_GENERATED_DIR}")
+            message(WARNING "Run 'cd grammar && ./generate.sh' to generate parser files")
+            message(STATUS "Cypher module will be stub only")
+        endif()
+    else()
+        message(WARNING "ANTLR4 runtime not found")
+        message(WARNING "Install ANTLR4: sudo apt-get install libantlr4-runtime-dev")
+        message(STATUS "Cypher module will be stub only")
+    endif()
+else()
+    message(STATUS "Cypher module disabled (set -DBUILD_CYPHER=ON to enable)")
+endif()
+
+# ============================================================================
+# Test Executables
+# ============================================================================
+
+# Example test executable
+add_executable(example_test example_test.cpp)
+target_include_directories(example_test PRIVATE include/dynamic_bitset/include)
+target_include_directories(example_test PRIVATE include/folly)
+target_link_libraries(example_test PRIVATE bach)
+
+# Visualization test executable
+add_executable(visualize_test visualize_test.cpp)
+target_include_directories(visualize_test PRIVATE include/dynamic_bitset/include)
+target_include_directories(visualize_test PRIVATE include/folly)
+target_link_libraries(visualize_test PRIVATE bach)
