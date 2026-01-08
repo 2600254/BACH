@@ -1,8 +1,34 @@
 #include "BACH/cypher/parser/cypher_parser.h"
 #include "BACH/cypher/parser/ast_visitor.h"
+#include <iostream>
 
 namespace BACH {
 namespace cypher {
+
+// ============================================================================
+// CypherParser Implementation
+// ============================================================================
+
+// Private implementation class (using ANTLR4)
+class CypherParser::Impl {
+public:
+    Impl() {}
+    ~Impl() = default;
+};
+
+CypherParser::CypherParser()
+    : impl(std::make_unique<Impl>()) {
+}
+
+CypherParser::~CypherParser() = default;
+
+std::unique_ptr<Query> CypherParser::Parse(const std::string& query) {
+    // TODO: Implement actual ANTLR4 parsing
+    // For now, return a stub query for testing
+    std::cerr << "Warning: CypherParser::Parse not fully implemented" << std::endl;
+    last_error = "Parser not implemented";
+    return nullptr;
+}
 
 // ============================================================================
 // ASTVisitor Accept Implementations

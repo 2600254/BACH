@@ -1,15 +1,13 @@
 #pragma once
 
 #include "../parser/ast.h"
+#include "../parser/clause.h"
 #include "execution_plan.h"
+#include "BACH/db/DB.h"
 #include <memory>
 
 namespace BACH {
 namespace cypher {
-
-// 前向声明
-class DB;
-class Transaction;
 
 // 查询规划器
 // 负责将 AST 转换为可执行的执行计划
@@ -22,10 +20,10 @@ public:
     std::unique_ptr<ExecutionPlan> Plan(const Query& query);
 
     // 设置数据库连接（用于优化时访问元数据）
-    void SetDatabase(DB* db) { database = db; }
+    void SetDatabase(::BACH::DB* db) { database = db; }
 
 private:
-    DB* database = nullptr;
+    ::BACH::DB* database = nullptr;
 
     // 规划各个子句
     std::unique_ptr<PlanNode> PlanMatchClause(const MatchClause& clause);

@@ -46,6 +46,12 @@ public:
     bool Execute(const std::string& query, class Transaction* tx);
 
     /**
+     * @brief Set the database pointer
+     * @param db The database instance
+     */
+    void SetDatabase(DB* db) { exec_ctx.db = db; }
+
+    /**
      * @brief Get the query results
      * @return Vector of result rows
      */

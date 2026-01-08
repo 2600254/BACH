@@ -566,7 +566,7 @@ ProjectOp::ProjectOp(PlanNode* node, ExecutionContext* context, DB* db)
     distinct = project->distinct;
     projections.reserve(project->projections.size());
     for (const auto& item : project->projections) {
-        projections.push_back({item.expr, item.alias});
+        projections.push_back({item.expr.get(), item.alias});
     }
 }
 
@@ -586,7 +586,7 @@ bool ProjectOp::Next() {
         current_row.clear();
 
         for (const auto& proj : projections) {
-            auto value = eval_ctx.Evaluate(proj.expr.get());
+            auto value = eval_ctx.Evaluate(proj.expr);
             current_row[proj.alias] = value;
         }
 
@@ -641,7 +641,7 @@ CreateNodeOp::CreateNodeOp(PlanNode* node, ExecutionContext* context, DB* db)
     : tx(context->tx), db(db), eval_ctx{context, db, nullptr} {
     auto* create = static_cast<CreateNode*>(node);
     var_name = create->var_name;
-    label_id = ctx->GetLabelId(create->label, true);
+    label_id = context->GetLabelId(create->label, true);
     properties.reserve(create->properties.size());
     for (const auto& [k, v] : create->properties) {
         properties.push_back({k, v.get()});
@@ -713,7 +713,7 @@ CreateEdgeOp::CreateEdgeOp(PlanNode* node, ExecutionContext* context, DB* db)
     edge_var = create->edge_var;
     src_var = create->src_var;
     dst_var = create->dst_var;
-    edge_label_id = ctx->GetLabelId(create->edge_label, false);
+    edge_label_id = context->GetLabelId(create->edge_label, false);
     properties.reserve(create->properties.size());
     for (const auto& [k, v] : create->properties) {
         properties.push_back({k, v.get()});
@@ -911,8 +911,8 @@ SetLabelsOp::SetLabelsOp(PlanNode* node, ExecutionContext* context, DB* db)
     auto* set = static_cast<SetLabels*>(node);
     var_name = set->var_name;
     for (const auto& label : set->labels) {
-        label_id = ctx->GetLabelId(label, true);
-        label_ids.push_back(label_id);
+        label_t lid = context->GetLabelId(label, true);
+        label_ids.push_back(lid);
     }
 }
 

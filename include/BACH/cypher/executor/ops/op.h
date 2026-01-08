@@ -182,7 +182,7 @@ public:
 
 private:
     struct ProjectionItem {
-        ExpressionPtr expr;
+        Expression* expr;  // Raw pointer - PlanNode owns the expression
         std::string alias;
     };
     std::vector<ProjectionItem> projections;
@@ -214,7 +214,7 @@ public:
 private:
     std::string var_name;
     label_t label_id;
-    std::vector<std::pair<std::string, ExpressionPtr>> properties;
+    std::vector<std::pair<std::string, Expression*>> properties;  // Raw pointers
 
     Transaction* tx = nullptr;
     DB* db = nullptr;
@@ -242,7 +242,7 @@ private:
     std::string src_var;
     std::string dst_var;
     label_t edge_label_id;
-    std::vector<std::pair<std::string, ExpressionPtr>> properties;
+    std::vector<std::pair<std::string, Expression*>> properties;  // Raw pointers
 
     Transaction* tx = nullptr;
     DB* db = nullptr;

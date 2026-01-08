@@ -87,9 +87,19 @@ if(BUILD_CYPHER)
 
             # Cypher test executable
             add_executable(cypher_test src/cypher/tests/cypher_test.cpp)
-            target_include_directories(cypher_test PRIVATE include ${ANTLR4_INCLUDE_DIR})
-            target_link_libraries(cypher_test PRIVATE bach ${ANTLR4_LIBRARY})
-            message(STATUS "Cypher test executable will be built")
+            target_include_directories(cypher_test PRIVATE include include/dynamic_bitset/include include/folly ${ANTLR4_INCLUDE_DIR})
+            target_link_libraries(cypher_test PRIVATE bach sul::dynamic_bitset folly ${ANTLR4_LIBRARY})
+
+            # Cypher interactive test executable
+            add_executable(cypher_interactive_test cypher_interactive_test.cpp)
+            target_include_directories(cypher_interactive_test PRIVATE include include/dynamic_bitset/include include/folly ${ANTLR4_INCLUDE_DIR})
+            target_link_libraries(cypher_interactive_test PRIVATE bach sul::dynamic_bitset folly ${ANTLR4_LIBRARY})
+
+            # Cypher demo test executable
+            add_executable(cypher_demo_test cypher_demo_test.cpp)
+            target_include_directories(cypher_demo_test PRIVATE include include/dynamic_bitset/include include/folly ${ANTLR4_INCLUDE_DIR})
+            target_link_libraries(cypher_demo_test PRIVATE bach sul::dynamic_bitset folly ${ANTLR4_LIBRARY})
+            message(STATUS "Cypher test executables will be built")
         else()
             message(WARNING "ANTLR4 parser files not found in ${PARSER_GENERATED_DIR}")
             message(WARNING "Run 'cd grammar && ./generate.sh' to generate parser files")
