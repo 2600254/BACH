@@ -99,6 +99,26 @@ if(BUILD_CYPHER)
             add_executable(cypher_demo_test cypher_demo_test.cpp)
             target_include_directories(cypher_demo_test PRIVATE include include/dynamic_bitset/include include/folly ${ANTLR4_INCLUDE_DIR})
             target_link_libraries(cypher_demo_test PRIVATE bach sul::dynamic_bitset folly ${ANTLR4_LIBRARY})
+
+            # Cypher parser test executable
+            add_executable(cypher_parser_test cypher_parser_test.cpp)
+            target_include_directories(cypher_parser_test PRIVATE include include/dynamic_bitset/include include/folly ${ANTLR4_INCLUDE_DIR})
+            target_link_libraries(cypher_parser_test PRIVATE bach sul::dynamic_bitset folly ${ANTLR4_LIBRARY})
+
+            # Cypher end-to-end integration test executable
+            add_executable(cypher_e2e_test cypher_e2e_test.cpp)
+            target_include_directories(cypher_e2e_test PRIVATE include include/dynamic_bitset/include include/folly ${ANTLR4_INCLUDE_DIR})
+            target_link_libraries(cypher_e2e_test PRIVATE bach sul::dynamic_bitset folly ${ANTLR4_LIBRARY})
+
+            # Cypher verification test executable (small scale)
+            add_executable(cypher_verify_test cypher_verify_test.cpp)
+            target_include_directories(cypher_verify_test PRIVATE include include/dynamic_bitset/include include/folly ${ANTLR4_INCLUDE_DIR})
+            target_link_libraries(cypher_verify_test PRIVATE bach sul::dynamic_bitset folly ${ANTLR4_LIBRARY})
+
+            # Cypher scale test executable (~100 edges)
+            add_executable(cypher_scale_test cypher_scale_test.cpp)
+            target_include_directories(cypher_scale_test PRIVATE include include/dynamic_bitset/include include/folly ${ANTLR4_INCLUDE_DIR})
+            target_link_libraries(cypher_scale_test PRIVATE bach sul::dynamic_bitset folly ${ANTLR4_LIBRARY})
             message(STATUS "Cypher test executables will be built")
         else()
             message(WARNING "ANTLR4 parser files not found in ${PARSER_GENERATED_DIR}")

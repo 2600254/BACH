@@ -3,37 +3,48 @@
 #include "ast.h"
 #include "clause.h"
 #include "expression.h"
-#include "symbol_table.h"
 #include <string>
 #include <memory>
 
 namespace BACH {
 namespace cypher {
 
-// Cypher 解析器入口类
-// 负责：将 Cypher 查询字符串解析为 AST
+// Simple Cypher Parser
+// Parses Cypher query strings into AST
 class CypherParser {
 public:
     CypherParser();
     ~CypherParser();
 
-    // 解析 Cypher 查询字符串，返回 AST
-    // 返回 nullptr 表示解析失败
+    // Parse Cypher query string, returns AST
+    // Returns nullptr on parse failure
     std::unique_ptr<Query> Parse(const std::string& query);
 
-    // 获取最后一个错误信息
+    // Get last error message
     std::string GetLastError() const { return last_error; }
-
-    // 获取符号表（解析后填充）
-    const SymbolTable& GetSymbolTable() const { return symbol_table; }
 
 private:
     std::string last_error;
-    SymbolTable symbol_table;
+    size_t pos;
+    std::string query;
 
-    // 内部实现（使用 ANTLR4）
-    class Impl;
-    std::unique_ptr<Impl> impl;
+    // Token handling
+    void SkipWhitespace();
+    char Peek() const;
+    char Get();
+    bool Match(const std::string& s);
+    std::string ReadIdentifier();
+    std::string ReadString();
+
+    // Parsing methods
+    std::unique_ptr<MatchClause> ParseMatchClause();
+    std::unique_ptr<ReturnClause> ParseReturnClause();
+    std::unique_ptr<CreateClause> ParseCreateClause();
+    std::unique_ptr<DeleteClause> ParseDeleteClause();
+    std::unique_ptr<SetClause> ParseSetClause();
+    std::unique_ptr<PathPattern> ParsePattern();
+    std::unique_ptr<NodePattern> ParseNodePattern();
+    std::unique_ptr<RelationshipPattern> ParseRelationshipPattern();
 };
 
 } // namespace cypher

@@ -92,7 +92,8 @@ public:
 private:
     ExecutionContext* ctx = nullptr;
     std::string output_var;
-    label_t label_id;  // 标签 ID，0 表示所有标签
+    label_t label_id = 0;       // 标签 ID
+    bool has_label_filter = false;  // 是否有标签过滤
     Transaction* tx = nullptr;
     DB* db = nullptr;
 
@@ -275,6 +276,7 @@ private:
 
     Transaction* tx = nullptr;
     DB* db = nullptr;
+    ExecutionContext* exec_ctx = nullptr;
     bool is_executed = false;
 
     std::unordered_map<std::string, Value> current_row;

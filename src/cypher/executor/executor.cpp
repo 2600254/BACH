@@ -367,20 +367,19 @@ AllNodeScanOp::AllNodeScanOp(PlanNode* node, ExecutionContext* context, DB* db)
     // 获取标签 ID
     if (!scan->label_filter.empty()) {
         label_id = ctx->GetLabelId(scan->label_filter, true);
+        has_label_filter = true;
     } else {
-        label_id = 0;  // 0 表示扫描所有标签
+        has_label_filter = false;  // 扫描所有标签
     }
 }
 
 void AllNodeScanOp::ScanLabelVertices() {
     if (!db || !tx) return;
 
-    if (label_id == 0) {
+    if (!has_label_filter) {
         // 扫描所有标签的所有顶点
-        // 使用 EdgeLabelScan 来遍历边，从而发现所有顶点
-        // 这里简化实现：假设顶点 ID 从 0 开始连续
-        // TODO: 需要从数据库获取顶点数量
-        // 当前是简化实现
+        // TODO: 需要从数据库获取所有标签的顶点总数
+        // 这里简化实现：假设顶点 ID 从 0 开始连续，最多 1000 个
         max_vertex = 1000; // 占位值
     } else {
         // 扫描指定标签的顶点
@@ -690,7 +689,7 @@ bool CreateNodeOp::Next() {
     }
 
     current_row[var_name] = VertexToValue(new_vid);
-    ctx->nodes_created++;
+    eval_ctx.exec_ctx->nodes_created++;
     is_executed = true;
     return true;
 }
@@ -768,7 +767,7 @@ bool CreateEdgeOp::Next() {
         current_row[edge_var] = EdgePropertyToValue(prop);
     }
 
-    ctx->relationships_created++;
+    eval_ctx.exec_ctx->relationships_created++;
     is_executed = true;
     return true;
 }
@@ -786,7 +785,7 @@ void CreateEdgeOp::Close() {
 // ============================================================================
 
 DeleteOp::DeleteOp(PlanNode* node, ExecutionContext* context, DB* db)
-    : tx(context->tx), db(db) {
+    : tx(context->tx), db(db), exec_ctx(context) {
     auto* del = static_cast<DeleteNode*>(node);  // or DeleteEdge
     if (node->GetNodeType() == PlanNodeType::DELETE_EDGE) {
         // 删除边
@@ -830,11 +829,11 @@ bool DeleteOp::Next() {
                 if (item.is_node) {
                     vertex_t vid = static_cast<vertex_t>(std::get<int64_t>(it->second.data));
                     tx->DelVertex(vid, item.label_id);
-                    ctx->nodes_deleted++;
+                    exec_ctx->nodes_deleted++;
                 } else {
                     // 删除边
                     // TODO: 需要获取 src, dst, label 信息
-                    ctx->relationships_deleted++;
+                    exec_ctx->relationships_deleted++;
                 }
             }
         }
